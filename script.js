@@ -1,5 +1,5 @@
-const token = "YOUR_PERSONAL_ACCESS_TOKEN"; // ⚠️ Don't expose in production
-const repo = "your-username/data-store-demo";
+const token = "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"; // ⚠️ Don't expose in production
+const repo = "uselessaltuselessness-del/SmartLibSystem";
 const path = "data.json";
 
 const DATA = [
