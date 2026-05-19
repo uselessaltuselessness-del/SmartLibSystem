@@ -1,13 +1,11 @@
-// Node 14+ environment
-const fetch = require("node-fetch");
-
+// netlify/functions/saveData.js
 exports.handler = async function(event) {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
   const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPO; // owner/repo
+  const repo = process.env.GITHUB_REPO;
   const path = "data.json";
   const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
 
@@ -19,15 +17,12 @@ exports.handler = async function(event) {
     const jsonString = JSON.stringify(DATA, null, 2);
     const contentBase64 = Buffer.from(jsonString, "utf8").toString("base64");
 
-    // Check if file exists to get sha (required for update)
+    // Check if file exists to get sha
     const getRes = await fetch(apiUrl, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
     });
 
-    const body = {
-      message: commitMessage,
-      content: contentBase64
-    };
+    const body = { message: commitMessage, content: contentBase64 };
 
     if (getRes.ok) {
       const existing = await getRes.json();
