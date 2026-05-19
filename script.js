@@ -1,23 +1,35 @@
-// Client-side: sends DATA to Netlify functions
+// Client-side script that calls Netlify functions
 const DATA = [
-  { name: "Alice", score: 10 },
-  { name: "Bob", score: 20 }
+  { id: 1, name: "Alice", score: 10 },
+  { id: 2, name: "Bob", score: 20 }
 ];
 
+const output = document.getElementById("output");
+
 async function saveData() {
-  const res = await fetch("/.netlify/functions/saveData", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: DATA, commitMessage: "Save DATA from site" })
-  });
-  const json = await res.json();
-  document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+  output.textContent = "Saving...";
+  try {
+    const res = await fetch("/.netlify/functions/saveData", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: DATA, commitMessage: "Save DATA from site" })
+    });
+    const json = await res.json();
+    output.textContent = JSON.stringify(json, null, 2);
+  } catch (err) {
+    output.textContent = "Error: " + err.message;
+  }
 }
 
 async function loadData() {
-  const res = await fetch("/.netlify/functions/loadData");
-  const json = await res.json();
-  document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+  output.textContent = "Loading...";
+  try {
+    const res = await fetch("/.netlify/functions/loadData");
+    const json = await res.json();
+    output.textContent = JSON.stringify(json, null, 2);
+  } catch (err) {
+    output.textContent = "Error: " + err.message;
+  }
 }
 
 document.getElementById("saveBtn").addEventListener("click", saveData);
