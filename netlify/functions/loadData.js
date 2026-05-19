@@ -1,5 +1,4 @@
-const fetch = require("node-fetch");
-
+// netlify/functions/loadData.js
 exports.handler = async function() {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO;
