@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NU Cebu Library System - DEBUG MODE</title>
+    <title>NU Cebu Library System</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -36,7 +36,8 @@
         const supabaseUrl = 'https://zrrqbzcsefmnfvqdwocw.supabase.co/rest/v1/';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpycnFiemNzZWZtbmZ2cWR3b2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NTg0MjMsImV4cCI6MjA5NTUzNDQyM30.TAoFWIaPWY0Myn40YqYT-Sadr6hRKgzDyzfvDc9xjxQ';
         
-        const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
+        // THE BUG FIX: using window.supabase instead of supabaseClient
+        const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         async function login() {
             const email = document.getElementById('email').value;
@@ -46,17 +47,16 @@
             errorMsg.innerText = "Connecting to database...";
 
             try {
-                const { data, error } = await supabase
+                // Using the new 'db' variable we created above
+                const { data, error } = await db
                     .from('profiles')
                     .select('*')
                     .eq('email', email)
                     .eq('password', password)
                     .maybeSingle();
 
-                // If Supabase throws an error, print it to the screen
                 if (error) {
                     errorMsg.innerText = "SUPABASE ERROR: " + error.message;
-                    console.error("Full Error:", error);
                     return;
                 }
 
