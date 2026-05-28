@@ -31,10 +31,9 @@
     </div>
 
     <script>
-        -- CHANGE THESE TO YOUR ACTUAL KEYS --
+        // Paste your keys below. Keep the single quotation marks!
         const supabaseUrl = 'https://zrrqbzcsefmnfvqdwocw.supabase.co/rest/v1/';
-        const supabaseKey = 'sb_publishable_w9kwzYDhnm5ub67SwHXT9g__9aIv4gx';
-        --------------------------------------
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpycnFiemNzZWZtbmZ2cWR3b2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NTg0MjMsImV4cCI6MjA5NTUzNDQyM30.TAoFWIaPWY0Myn40YqYT-Sadr6hRKgzDyzfvDc9xjxQ';
         
         const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
 
@@ -45,7 +44,6 @@
             
             errorMsg.innerText = "Checking credentials...";
 
-            // Search Supabase for the user
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -54,14 +52,12 @@
                 .maybeSingle();
 
             if (data) {
-                // Success! Hide login, show dashboard
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('dashboard-page').classList.remove('hidden');
                 document.getElementById('welcome-msg').innerText = `Welcome, ${data.name}!`;
                 document.getElementById('user-role').innerText = data.role.toUpperCase();
                 errorMsg.innerText = "";
             } else {
-                // Failed!
                 errorMsg.innerText = "Invalid email or password.";
             }
         }
