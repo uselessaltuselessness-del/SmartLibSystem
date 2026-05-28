@@ -1,22 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>GitHub Data Store Demo</title>
-  <style>
-    body { font-family: system-ui, Arial; padding: 24px; max-width: 800px; margin: auto; }
-    button { margin-right: 8px; padding: 8px 12px; }
-    pre { background:#f6f8fa; padding:12px; border-radius:6px; overflow:auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NU Cebu Library System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 10px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #004494; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-  <h1>GitHub Data Store Demo</h1>
-  <p>Click <strong>Save Data</strong> to write the sample DATA array to <code>data.json</code> in your repo via a Netlify Function. Click <strong>Load Data</strong> to read it back.</p>
 
-  <button id="saveBtn">Save Data</button>
-  <button id="loadBtn">Load Data</button>
-  <pre id="output">Output will appear here</pre>
+    <div id="login-page" class="card">
+        <h2>Library Login</h2>
+        <input type="email" id="email" placeholder="Email Address" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Log In</button>
+        <p id="error-msg" style="color: red; font-size: 14px;"></p>
+    </div>
 
-  <script src="script.js"></script>
+    <div id="dashboard-page" class="card hidden">
+        <h2 id="welcome-msg">Welcome!</h2>
+        <p>Your Role: <strong id="user-role"></strong></p>
+        <button onclick="logout()" style="background-color: #dc3545;">Log Out</button>
+    </div>
+
+    <script>
+        -- CHANGE THESE TO YOUR ACTUAL KEYS --
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        --------------------------------------
+        
+        const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            errorMsg.innerText = "Checking credentials...";
+
+            // Search Supabase for the user
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('email', email)
+                .eq('password', password)
+                .maybeSingle();
+
+            if (data) {
+                // Success! Hide login, show dashboard
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('dashboard-page').classList.remove('hidden');
+                document.getElementById('welcome-msg').innerText = `Welcome, ${data.name}!`;
+                document.getElementById('user-role').innerText = data.role.toUpperCase();
+                errorMsg.innerText = "";
+            } else {
+                // Failed!
+                errorMsg.innerText = "Invalid email or password.";
+            }
+        }
+
+        function logout() {
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('dashboard-page').classList.add('hidden');
+        }
+    </script>
 </body>
 </html>
