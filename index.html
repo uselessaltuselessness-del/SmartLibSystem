@@ -6,37 +6,56 @@
     <title>NU Cebu Library System</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;}
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; margin-top: 10vh; }
+        .dashboard { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; text-align: left; }
         input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; padding: 10px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button { padding: 10px 15px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #004494; }
-        .hidden { display: none; }
-        #error-msg { color: red; font-size: 14px; font-weight: bold; margin-top: 10px; word-wrap: break-word;}
+        .btn-danger { background-color: #dc3545; width: 100%; margin-top: 20px;}
+        .btn-danger:hover { background-color: #c82333; }
+        .hidden { display: none !important; }
+        #error-msg { color: red; font-size: 14px; font-weight: bold; margin-top: 10px; }
+        .book-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;}
     </style>
 </head>
 <body>
 
     <div id="login-page" class="card">
-        <h2>Library Login</h2>
+        <h2>NU Cebu Library Login</h2>
         <input type="email" id="email" placeholder="Email Address" required>
         <input type="password" id="password" placeholder="Password" required>
-        <button onclick="login()">Log In</button>
+        <button style="width: 100%;" onclick="login()">Log In</button>
         <p id="error-msg"></p>
     </div>
 
-    <div id="dashboard-page" class="card hidden">
-        <h2 id="welcome-msg">Welcome!</h2>
-        <p>Your Role: <strong id="user-role"></strong></p>
-        <button onclick="logout()" style="background-color: #dc3545;">Log Out</button>
+    <div id="student-dashboard" class="dashboard hidden">
+        <h2>Student Dashboard</h2>
+        <p>Welcome back, <strong id="student-name"></strong>!</p>
+        <hr>
+        <h3>Available Books</h3>
+        <div id="book-list">Loading books...</div>
+        
+        <button class="btn-danger" onclick="logout()">Log Out</button>
+    </div>
+
+    <div id="librarian-dashboard" class="dashboard hidden">
+        <h2>Librarian Dashboard</h2>
+        <p>Welcome, Ms. Smith. Book management features coming soon.</p>
+        <button class="btn-danger" onclick="logout()">Log Out</button>
+    </div>
+
+    <div id="admin-dashboard" class="dashboard hidden">
+        <h2>System Admin Dashboard</h2>
+        <p>Welcome, Jem. User management features coming soon.</p>
+        <button class="btn-danger" onclick="logout()">Log Out</button>
     </div>
 
     <script>
-        // Paste your keys below. Keep the single quotation marks!
+        // --- PASTE YOUR KEYS HERE ---
         const supabaseUrl = 'https://zrrqbzcsefmnfvqdwocw.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpycnFiemNzZWZtbmZ2cWR3b2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NTg0MjMsImV4cCI6MjA5NTUzNDQyM30.TAoFWIaPWY0Myn40YqYT-Sadr6hRKgzDyzfvDc9xjxQ';
         
-        // THE BUG FIX: using window.supabase instead of supabaseClient
         const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         async function login() {
@@ -44,10 +63,9 @@
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
             
-            errorMsg.innerText = "Connecting to database...";
+            errorMsg.innerText = "Connecting...";
 
             try {
-                // Using the new 'db' variable we created above
                 const { data, error } = await db
                     .from('profiles')
                     .select('*')
@@ -55,30 +73,70 @@
                     .eq('password', password)
                     .maybeSingle();
 
-                if (error) {
-                    errorMsg.innerText = "SUPABASE ERROR: " + error.message;
-                    return;
-                }
+                if (error) { errorMsg.innerText = "Error: " + error.message; return; }
 
                 if (data) {
+                    // Hide login page
                     document.getElementById('login-page').classList.add('hidden');
-                    document.getElementById('dashboard-page').classList.remove('hidden');
-                    document.getElementById('welcome-msg').innerText = `Welcome, ${data.name}!`;
-                    document.getElementById('user-role').innerText = data.role.toUpperCase();
+                    
+                    // Route user to the correct dashboard based on their role
+                    if (data.role === 'student') {
+                        document.getElementById('student-dashboard').classList.remove('hidden');
+                        document.getElementById('student-name').innerText = data.name;
+                        fetchBooks(); // Load the books!
+                    } else if (data.role === 'librarian') {
+                        document.getElementById('librarian-dashboard').classList.remove('hidden');
+                    } else if (data.role === 'admin') {
+                        document.getElementById('admin-dashboard').classList.remove('hidden');
+                    }
                     errorMsg.innerText = "";
                 } else {
                     errorMsg.innerText = "Invalid email or password.";
                 }
             } catch (err) {
-                errorMsg.innerText = "CRITICAL ERROR: " + err.message;
+                errorMsg.innerText = "Error: " + err.message;
             }
         }
 
+        async function fetchBooks() {
+            const bookList = document.getElementById('book-list');
+            // Ask Supabase for all books
+            const { data: books, error } = await db.from('books').select('*');
+
+            if (error) {
+                bookList.innerHTML = "<p style='color:red;'>Failed to load books.</p>";
+                return;
+            }
+
+            // Clear the "Loading..." text
+            bookList.innerHTML = "";
+
+            // Loop through the books and display them
+            books.forEach(book => {
+                const status = book.available ? "<span style='color:green;'>Available</span>" : "<span style='color:red;'>Borrowed</span>";
+                
+                bookList.innerHTML += `
+                    <div class="book-item">
+                        <div>
+                            <strong>${book.title}</strong> by ${book.author} <br>
+                            <small>ISBN: ${book.isbn}</small>
+                        </div>
+                        <div>
+                            ${status}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
         function logout() {
+            // Clear inputs and hide all dashboards, show login
             document.getElementById('email').value = '';
             document.getElementById('password').value = '';
+            document.getElementById('student-dashboard').classList.add('hidden');
+            document.getElementById('librarian-dashboard').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
             document.getElementById('login-page').classList.remove('hidden');
-            document.getElementById('dashboard-page').classList.add('hidden');
         }
     </script>
 </body>
